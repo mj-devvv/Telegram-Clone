@@ -1,0 +1,103 @@
+/*
+ * DESIGN SYSTEM: tokens mirror Telegram Web's dark palette; [data-theme=light] swaps tokens only,
+ * so no component rule is theme-aware (one style recalc on toggle, zero layout work).
+ * PERF: the mobile panel swap animates `transform` only -> compositor-thread, no layout/paint per frame.
+ */
+:root {
+  --color-surface-background: #0e1621;
+  --color-surface-sidebar: #17212b;
+  --color-bubble-outgoing: #2b5278;
+  --color-bubble-incoming: #182533;
+  --color-text-primary: #f5f5f5;
+  --color-text-secondary: #7f91a4;
+  --color-action-interactive: #5288c1;
+  --color-divider: rgba(255,255,255,.06);
+  --sidebar-width: 380px;
+  --radius-bubble: 12px;
+  --space: 12px;
+}
+:root[data-theme="light"] {
+  --color-surface-background: #dfe7ee;
+  --color-surface-sidebar: #ffffff;
+  --color-bubble-outgoing: #d2eafc;
+  --color-bubble-incoming: #ffffff;
+  --color-text-primary: #17212b;
+  --color-text-secondary: #707d8a;
+  --color-divider: rgba(0,0,0,.08);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: var(--color-surface-background);
+  color: var(--color-text-primary); font: 15px/1.4 -apple-system, "Segoe UI", Roboto, sans-serif; }
+button, input, textarea { font: inherit; color: inherit; }
+
+/* Two-column flex grid. Sidebar locked at 380px; chat core is fluid (min-width:0 lets children shrink). */
+.app { display: flex; width: 100%; height: 100dvh; overflow: hidden; }
+.sidebar { flex: 0 0 var(--sidebar-width); display: flex; flex-direction: column;
+  background: var(--color-surface-sidebar); border-right: 1px solid var(--color-divider); }
+.chat { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+
+.sidebar__top { display: flex; gap: 8px; padding: 10px; }
+.search { flex: 1; min-width: 0; padding: 9px 14px; border: 0; border-radius: 20px; outline: 0;
+  background: var(--color-surface-background); }
+.search::placeholder, textarea::placeholder { color: var(--color-text-secondary); }
+.icon-btn { width: 38px; height: 38px; border: 0; border-radius: 50%; background: none; cursor: pointer;
+  color: var(--color-text-secondary); font-size: 18px; }
+.icon-btn:hover { background: var(--color-divider); }
+.back { display: none; }
+.banner { padding: 6px 12px; text-align: center; font-size: 13px; background: var(--color-action-interactive); color: #fff; }
+.banner[hidden] { display: none; }
+
+.chat-list { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; }
+.chat-item { display: grid; grid-template-columns: 52px 1fr auto; gap: 2px 12px; padding: 9px 12px;
+  cursor: pointer; align-items: center; }
+.chat-item:hover { background: var(--color-divider); }
+.chat-item.is-active { background: var(--color-action-interactive); }
+.chat-item.is-active * { color: #fff !important; }
+.avatar { grid-row: span 2; width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center;
+  color: #fff; font-weight: 600; font-size: 20px; }
+.chat-item__name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat-item__time { font-size: 12px; color: var(--color-text-secondary); }
+.chat-item__preview { color: var(--color-text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat-item__preview.is-typing { color: var(--color-action-interactive); }
+.badge { min-width: 22px; padding: 1px 7px; border-radius: 11px; text-align: center; font-size: 12px;
+  background: var(--color-action-interactive); color: #fff; justify-self: end; }
+.empty { padding: 24px; text-align: center; color: var(--color-text-secondary); }
+
+.chat__header { display: flex; align-items: center; gap: 8px; padding: 8px 14px; min-height: 56px;
+  background: var(--color-surface-sidebar); border-bottom: 1px solid var(--color-divider); }
+.chat__title { margin: 0; font-size: 16px; font-weight: 600; }
+.chat__status { margin: 0; font-size: 13px; color: var(--color-text-secondary); }
+.chat__status.is-typing { color: var(--color-action-interactive); }
+
+/* overflow-anchor:none -> we own scroll position via the rAF scroll scheduler. */
+.timeline { flex: 1; overflow-y: auto; padding: 12px 8%; display: flex; flex-direction: column; gap: 4px;
+  overflow-anchor: none; }
+.timeline__empty { margin: auto; padding: 4px 14px; border-radius: 14px; background: var(--color-surface-sidebar);
+  color: var(--color-text-secondary); font-size: 13px; }
+.msg { display: flex; }
+.msg--out { justify-content: flex-end; }
+.bubble { max-width: min(480px, 85%); padding: 6px 10px 4px; border-radius: var(--radius-bubble);
+  background: var(--color-bubble-incoming); overflow-wrap: anywhere; white-space: pre-wrap; }
+.msg--out .bubble { background: var(--color-bubble-outgoing); border-bottom-right-radius: 4px; }
+.msg--in .bubble { border-bottom-left-radius: 4px; }
+.meta { margin-left: 10px; float: right; font-size: 11px; line-height: 20px; color: var(--color-text-secondary); }
+.sentinel { height: 1px; flex: none; }
+
+.composer { display: flex; gap: 8px; align-items: flex-end; padding: 8px 12px;
+  background: var(--color-surface-sidebar); border-top: 1px solid var(--color-divider); }
+.composer textarea { flex: 1; resize: none; max-height: 140px; padding: 10px 14px; border: 0; outline: 0;
+  border-radius: 18px; background: var(--color-surface-background); }
+.send { width: 40px; height: 40px; border: 0; border-radius: 50%; cursor: pointer;
+  background: var(--color-action-interactive); color: #fff; }
+.chat.is-idle .composer { display: none; }
+
+/* Mobile: a single grid container is 200% wide; one class flips which half is in the viewport. */
+@media (max-width: 768px) {
+  .app { width: 200%; transition: transform .28s cubic-bezier(.4, 0, .2, 1); will-change: transform; }
+  .sidebar { flex: 0 0 50%; }
+  .chat { flex: 0 0 50%; }
+  .app.is-chat-open { transform: translateX(-50%); }
+  .back { display: inline-grid; place-items: center; }
+  .timeline { padding: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { .app { transition: none; } }
